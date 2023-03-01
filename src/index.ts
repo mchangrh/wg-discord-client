@@ -10,23 +10,20 @@ export interface Env {
 	//
 	// Example binding to a Service. Learn more at https://developers.cloudflare.com/workers/runtime-apis/service-bindings/
 	// MY_SERVICE: Fetcher;
+
+  CLIENT_PUBLIC_KEY: string
+  IFACE: string
+  VPN_NAME: string
+  SERVER_AUTH: string
+  SERVER_URL: string
+  WG_SERVER_ALLOWEDIPS: string
+  WG_SERVER_ADDR: string
+  WG_SERVER_PUBKEY: string
 }
 
 import { verifyKey } from "discord-interactions";
 import generateFile from "./utils/generateFile";
 import { addPeer } from "./utils/server-api";
-
-// environment variable
-declare global {
-  const CLIENT_PUBLIC_KEY: string
-  const IFACE: string
-  const VPN_NAME: string
-  const SERVER_AUTH: string
-  const SERVER_URL: string
-  const WG_SERVER_ALLOWEDIPS: string
-  const WG_SERVER_ADDR: string
-  const WG_SERVER_PUBKEY: string
-}
 
 import { commandList } from "./commands/_CommandList";
 import { buttonList } from "./buttons/_ButtonList";
@@ -46,19 +43,19 @@ const textResponse = (str: string) => new Response(str, {
 });
 
 // Util to verify a Discord interaction is legitimate
-const handleInteractionVerification = (request: Request, bodyBuffer: ArrayBuffer) => {
+const handleInteractionVerification = (request: Request, bodyBuffer: ArrayBuffer, pubkey: string) => {
   const timestamp = request.headers.get("X-Signature-Timestamp") || "";
   const signature = request.headers.get("X-Signature-Ed25519") || "";
-  return verifyKey(bodyBuffer, signature, timestamp, CLIENT_PUBLIC_KEY);
+  return verifyKey(bodyBuffer, signature, timestamp, pubkey);
 };
 
-const generateFileEndpoint = async () => {
+const generateFileEndpoint = async (env: Env, vpn_name: string) => {
   // generate file
-  const result = await generateFile(IFACE)
+  const result = await generateFile(env)
   // push to server
-  await addPeer(IFACE, result.pubkey, result.ip)
+  await addPeer(env, result.pubkey, result.ips)
   // return file
-  const contentDisposition = `attachment; filename= ${VPN_NAME}.conf`;
+  const contentDisposition = `attachment; filename= ${vpn_name}.conf`;
   return new Response(result.config, {
     status: 200,
     headers: { "content-type": "text/plain", "Content-Disposition": contentDisposition}
@@ -66,13 +63,13 @@ const generateFileEndpoint = async () => {
 }
 
 // Process a Discord interaction POST request
-const handleInteraction = async (request: Request) => {
+const handleInteraction = async (request: Request, env: Env) => {
   // Get the body as a buffer and as text
   const bodyBuffer = await request.arrayBuffer();
   const bodyText = (new TextDecoder("utf-8")).decode(bodyBuffer);
 
   // Verify a legitimate request
-  if (!handleInteractionVerification(request, bodyBuffer))
+  if (!handleInteractionVerification(request, bodyBuffer, env.CLIENT_PUBLIC_KEY))
     return new Response(null, { status: 401 });
 
   // Work with JSON body going forward
@@ -87,7 +84,7 @@ const handleInteraction = async (request: Request) => {
       if (commandList.includes(commandName)) { // check in userCmd list
         // load and execute
         const command = commandList[commandName]
-        return jsonResponse(await command.execute(body));
+        return jsonResponse(await command.execute(body, env));
       } else { // command not found, 404
         return new Response(null, { status: 404 });
       }
@@ -97,7 +94,7 @@ const handleInteraction = async (request: Request) => {
       if (buttonList.includes(buttonName)) { // check in userCmd list
         // load and execute
         const command = buttonList[buttonName]
-        return jsonResponse(await command.execute(body));
+        return jsonResponse(await command.execute(body, env));
       } else { // command not found, 404
         return new Response(null, { status: 404 });
       }
@@ -130,13 +127,13 @@ export default {
 		const url = new URL(request.url);
   // Send interactions off to their own handler
   if (request.method === "POST" && url.pathname === "/interactions")
-    return await handleInteraction(request);
+    return await handleInteraction(request, env);
   if (url.pathname === "/ping")
     return textResponse("pong");
   if (url.pathname === "/genconfig") {
-    if (url.searchParams.get("auth") != SERVER_AUTH)
+    if (url.searchParams.get("auth") != env.SERVER_AUTH)
       return new Response(null, { status: 403 });
-    return await generateFileEndpoint();
+    return await generateFileEndpoint(env, env.VPN_NAME);
   }
   return new Response(null, { status: 404 });
 	},

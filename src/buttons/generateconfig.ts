@@ -1,17 +1,18 @@
 import { Button } from "./_ButtonList";
 import generateFile from "../utils/generateFile";
 import { addPeer } from "../utils/server-api";
+import { Env } from "../index"
 
 export const genconfig = {
   customId: "genconfig",
-  execute: async (interaction) => {
+  execute: async (interaction, env: Env) => {
     // generate file
-    const result = await generateFile(IFACE)
+    const result = await generateFile(env)
     // push to server
-    await addPeer(IFACE, result.pubkey, result.ip)
+    await addPeer(env, result.pubkey, result.ips)
     const body = {
       files: [{
-        name: `${VPN_NAME}.conf`,
+        name: `${env.VPN_NAME}.conf`,
         attachment: result.config
       }],
       flags: 64
