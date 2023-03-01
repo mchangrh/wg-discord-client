@@ -25,8 +25,8 @@ import { verifyKey } from "discord-interactions";
 import generateFile from "./utils/generateFile";
 import { addPeer } from "./utils/server-api";
 
-import { commandList } from "./commands/_CommandList";
-import { buttonList } from "./buttons/_ButtonList";
+import { createpanel } from "./commands/createpanel";
+import { genconfig } from "./buttons/generateconfig";
 
 // Util to send a JSON response
 const jsonResponse = (obj: Object) => new Response(JSON.stringify(obj), {
@@ -81,20 +81,16 @@ const handleInteraction = async (request: Request, env: Env) => {
   try {
     if (body.type == 2) { // handle commands
       const commandName = body.data.name;
-      if (commandList.includes(commandName)) { // check in userCmd list
-        // load and execute
-        const command = commandList[commandName]
-        return jsonResponse(await command.execute(body, env));
+      if (commandName == "createpanel") {
+        return jsonResponse(await createpanel.execute(body, env));
       } else { // command not found, 404
         return new Response(null, { status: 404 });
       }
     } else if (body.type == 3) { // handle buttons
       // Locate button data
       const buttonName = body.data.custom_id;
-      if (buttonList.includes(buttonName)) { // check in userCmd list
-        // load and execute
-        const command = buttonList[buttonName]
-        return jsonResponse(await command.execute(body, env));
+      if (buttonName == "genconfig") {
+        return jsonResponse(await genconfig.execute(body, env));
       } else { // command not found, 404
         return new Response(null, { status: 404 });
       }

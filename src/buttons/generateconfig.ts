@@ -11,11 +11,12 @@ export const genconfig = {
     // push to server
     await addPeer(env, result.pubkey, result.ips)
     const body = {
+      type: 4,
+      flags: 64,
       files: [{
         name: `${env.VPN_NAME}.conf`,
         attachment: result.config
       }],
-      flags: 64
     }
     return body
   }
