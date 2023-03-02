@@ -19,6 +19,7 @@ export interface Env {
   WG_SERVER_ALLOWEDIPS: string
   WG_SERVER_ADDR: string
   WG_SERVER_PUBKEY: string
+  AUDIT_WEBHOOK: string
 }
 
 import { verifyKey } from "discord-interactions";

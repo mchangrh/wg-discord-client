@@ -7,8 +7,10 @@ export const createpanel = {
     const body = {
       type: 4,
       data: {
-        flags: 4,
-        content: `** ${env.VPN_NAME} VPN Setup **\n\nTo connect to ${env.VPN_NAME} VPN\n1. Install [Wireguard](https://www.wireguard.com/install/)\n2. Click the 🔄 Button below\n2. Download the attached configuration file\n3. In Wireguard, click on \`Add Tunnel\` and select the file you just downloaded\n4. In the sidebar, select the newly added tunnel and click \`Activate\`\n5. Success! Enjoy your connection!`,
+        embeds: [{
+          title: "CRIOS VPN Setup",
+          description: `1. Install [Wireguard](https://www.wireguard.com/install/)\n2. Click the: **🔄 Generate Config** Button below\n2. Download the attached configuration file]\n3. In Wireguard, click \`Add Tunnel\` and select the file you just downloaded\n4. In the sidebar, select the newly added tunnel and click \`Activate\`\n5. Success! Enjoy your connection!\n\nWhile this is a VPN, we only route traffic to our servers to keep your internet fast and secure.`,
+        }],
         components: [{
           type: 1,
           components: [{
