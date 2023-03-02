@@ -1,4 +1,5 @@
-import { utils, curve25519} from "@noble/ed25519"
+import { utils, curve25519 } from "@noble/ed25519"
+import { Buffer } from 'buffer'
 
 const Uint8ArrayToBase64 = (u8a: Uint8Array) => Buffer.from(u8a).toString('base64')
 

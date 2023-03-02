@@ -8,15 +8,18 @@ export const genconfig = {
   execute: async (interaction, env: Env) => {
     // generate file
     const result = await generateFile(env)
+    console.log(result)
     // push to server
     await addPeer(env, result.pubkey, result.ips)
+    // upload to bin
+    const binResult = await fetch("https://b.mchang.xyz/b", { method: "POST", body: result.config })
+      .then(res => res.text())
     const body = {
       type: 4,
-      flags: 64,
-      files: [{
-        name: `${env.VPN_NAME}.conf`,
-        attachment: result.config
-      }],
+      data: {
+        flags: 64,
+        content: `Your config is ready! Download it [here](https://b.mchang.xyz/b/${binResult})`,
+      }
     }
     return body
   }

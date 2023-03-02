@@ -4,7 +4,7 @@ export function generateIp(): string {
   // ip range
   const ipRange = {
     firstOctet: { min: 172, max: 172 },
-    secondOctet: { min: 20, max: 60 },
+    secondOctet: { min: 20, max: 20 },
     thirdOctet: { min: 0, max: 255 },
     fourthOctet: { min: 2, max: 255 },
   }
